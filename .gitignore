@@ -1,4 +1,6 @@
 __pycache__/
 data/images/train/*
 data/labels/train/*
+data/labels/ignore/*
+data/labels/ignore/*
 *.pt
