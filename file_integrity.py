@@ -1,6 +1,7 @@
 import os
 
-def checkDataSequencing():
+def checkDataSequencing(force_start=False):
+    force_start = force_start
     images_dir = "data/images/train"
     labels_dir = "data/labels/train"
 
@@ -21,5 +22,7 @@ def checkDataSequencing():
             print(f"\t- Extra image file(s): {sorted(extra_images)}")
         if extra_labels:
             print(f"\t- Extra label file(s): {sorted(extra_labels)}")
-
-        raise ValueError("Cannot proceed with mismatched label-image types")
+        if force_start == False:
+            raise ValueError("Cannot proceed with mismatched label-image types")
+        else:
+            print("\nForcing start despite mismatched files.\n")
