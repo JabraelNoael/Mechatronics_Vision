@@ -30,7 +30,8 @@ data:
 ### This issue pertains to Summer 2025 data:
 1. The following images won't work due to their annotation being off bound, you can choose to force their annotations to `1 0.5 0.5 1 1` or delete them entirely.
 > 0475, 0512, 1153, 1240, 1684, 1788, 1995, 2123, 2904, 2959, 3656, 3690, 4630
-feel free to use the terminal code below to move them into a `ignore` file instead
+
+feel free to use the terminal code below to move them into a `ignore` file instead (create the file under 'data/images' and 'data/labels' first)
 ```bash
 mv Mechatronics_Vision_2026/data/images/train/screenshot_0475.png Mechatronics_Vision_2026/data/images/ignore
 mv Mechatronics_Vision_2026/data/images/train/screenshot_0512.png Mechatronics_Vision_2026/data/images/ignore
