@@ -1,6 +1,7 @@
 __pycache__/
+#images & annotation files but not the file structure itself
 data/images/train/*
 data/labels/train/*
-data/labels/ignore/*
+data/images/ignore/*
 data/labels/ignore/*
 *.pt
