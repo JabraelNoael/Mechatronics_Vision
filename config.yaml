@@ -1,7 +1,0 @@
-path: /Users/jnoael/Mechatronics_Vision_2026/data
-train: images/train
-val: images/train
-
-names:
-  0: na
-  1: target

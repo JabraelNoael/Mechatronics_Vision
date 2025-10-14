@@ -1,0 +1,55 @@
+Legend:
+    _ - The default tag is "dark" as a lot of the photos are overly dark to the point of training it on unhelpful data
+    Angle - The angle is very extreme maybe to the point of no recognizition, these are likely fine depending on how they were annotated
+    Bright - 
+
+0003
+0016
+0036
+0062
+0069
+0080
+0086
+0100 (Angle)
+0117
+0131
+0145
+0170
+0236
+0262
+0285 (No Photo)
+0297
+0423
+0442 (No Photo)
+0498 (Bright)
+0524 (Bright + No Photo)
+0537
+0552 (Angle)
+0555
+0557
+0667 (Bright)
+0715 (No Photo)
+0887 (Angle)
+0890
+0919 (Bright)
+0971 (Angle)
+0981 (Bright)
+1037
+1204 (Bright) #I think still usable
+1213
+1267
+1287
+1374
+1399
+1404
+1406 (Angle)
+1431 (No Photo)
+1476
+1559
+1572
+1577
+1579
+1590
+1591 (Angle)
+
+5961
