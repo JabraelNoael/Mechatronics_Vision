@@ -1,4 +1,5 @@
 import os
+import torch
 
 def checkDataSequencing(force_start=False):
     force_start = force_start
@@ -23,6 +24,26 @@ def checkDataSequencing(force_start=False):
         if extra_labels:
             print(f"\t- Extra label file(s): {sorted(extra_labels)}")
         if force_start == False:
-            raise ValueError("Cannot proceed with mismatched label-image types")
+            response = input("Label-Image Sequencing fails, force start? [y/n]: ")
+            if response.lower() == 'y':
+                print("\nForcing start despite mismatched files.\n")
+            else:
+                raise ValueError("Stopping due to Label-Image Sequence failure.")
         else:
             print("\nForcing start despite mismatched files.\n")
+
+def isGPU(force_start=False):
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        print(f"CUDA is available. Using GPU: {torch.cuda.get_device_name(device)}")
+        print(f"Memory Allocated: {torch.cuda.memory_allocated(device) / 1024**2:.2f} MB")
+        print(f"Memory Cached: {torch.cuda.memory_reserved(device) / 1024**2:.2f} MB")
+    else:
+        if force_start == False:
+            response = input("GPU is not mounted, continue with CPU only? [y/n]:")
+            if response.lower() == 'y':
+                print("CUDA is not available. Using CPU.")
+            else:
+                raise ValueError("Stopping due to GPU not being mounted")
+        else:
+            print("CUDA is not available. Using CPU.")
