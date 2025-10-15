@@ -6,3 +6,4 @@ data/images/ignore/*
 data/labels/ignore/*
 #all pre-trained models (with the exception of my own once I finish training it)
 *.pt
+train.cache
