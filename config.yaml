@@ -1,2 +1,4 @@
-camera source:
-  source: 0
+training:
+  settings:
+   - force_validate_data_sequence: true
+   - force_attempt_mount_gpu: true
