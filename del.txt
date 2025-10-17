@@ -1,5 +1,5 @@
 Legend:
-    _ - The default tag is "dark" as a lot of the photos are overly dark to the point of training it on unhelpful data
+    <empty> - The default tag is "dark" as a lot of the photos are overly dark to the point of training it on unhelpful data
     Angle - The angle is very extreme maybe to the point of no recognizition, these are likely fine depending on how they were annotated
     Bright - 
 
@@ -53,7 +53,32 @@ Legend:
 1590
 1591 (Angle)
 1652
-
+1655
+1656
+1685
+1783
+1789
+1806 (Bright)
+1828 (Angle)
+1831 (Angle)
+1836
+1837
+1838 (Angle)
+1841
+1842
+1843
+1847 (Angle)
+1864
+1898
+1911 (Angle)
+1912
+1929
+1937
+1963
+1964
+1965 (Angle)
+2004
+2014
 5391
 5394 (Angle)
 5430
