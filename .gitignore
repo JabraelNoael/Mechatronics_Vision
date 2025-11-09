@@ -7,3 +7,5 @@ data/labels/ignore/*
 #all pre-trained models (with the exception of my own once I finish training it)
 *.pt
 train.cache
+#Add venv file to git ignore(To avoid having git coomit 10k+ files lmao)
+mecha_yolo/
