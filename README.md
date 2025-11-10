@@ -60,3 +60,12 @@ mv Mechatronics_Vision_2026/data/labels/train/screenshot_3656.txt Mechatronics_V
 mv Mechatronics_Vision_2026/data/labels/train/screenshot_3690.txt Mechatronics_Vision_2026/data/labels/ignore
 mv Mechatronics_Vision_2026/data/labels/train/screenshot_4630.txt Mechatronics_Vision_2026/data/labels/ignore
 ```
+
+## Zed Camera Setup
+
+1. Make sure you have the Zed sdk downloaded. This can be found in this link:
+https://www.stereolabs.com/docs/development/zed-sdk
+Note: Pip installing 'pyzed.sl' will not word sdk need to be downloaded from link above.
+CUDA TOOLKIT IS NEEDED(For Windows Atleast).
+
+2. 

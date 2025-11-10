@@ -1,4 +1,6 @@
 from ultralytics import YOLO
+from zed_camera import Zed
+
 
 # The goal of this main.py should be to return the following:
 #   1. After checking that the shark is there for 3+ frames, we send the confidence level in index 1 of a tuple
@@ -8,15 +10,11 @@ from ultralytics import YOLO
 
 
 def main():
-
-     best = r"C:\Users\whift\Mechatronics_Vision\best.pt"
-
-     model = YOLO(best)
-
-     model.predict(source=0, show=True)
-
-     print('Model Finished Running')
      
+     best = r"v1 (1).pt"
+     zed_cam = Zed(best)
+     zed_cam.run()
+
 
 if __name__ == '__main__':
      main()
