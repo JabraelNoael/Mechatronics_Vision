@@ -3,25 +3,24 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-# ----------------------- User-configurable params -----------------------
-IMAGE_PATH = r"D:\Mechatronics_Vision\data\images\redladle.png"  # <- set to your image path
+IMAGE_PATH = r"data/images/redladle.png"
 MIN_GRID = 50
 GRID_COLS = MIN_GRID
 GRID_ROWS = MIN_GRID
 WINDOW_SCALE = 1.0
 OUTPUT_DIR = "ladle_outputs"
-# -----------------------------------------------------------------------
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def load_image(path):
     img = cv2.imread(path, cv2.IMREAD_COLOR)
+    global h, w
+    h, w = img.shape[:2]
     if img is None:
         raise FileNotFoundError(f"Could not load image at {path}")
     return img
 
 def overlay_grid(img, cols, rows, color=(0,0,0), thickness=1):
-    h, w = img.shape[:2]
     img_grid = img.copy()
     # vertical lines
     for i in range(1, cols):
@@ -34,8 +33,6 @@ def overlay_grid(img, cols, rows, color=(0,0,0), thickness=1):
     return img_grid
 
 def compute_cell_averages(img, cols, rows):
-    """Return averaged_image and a (rows x cols x 3) array of avg colors (BGR)."""
-    h, w = img.shape[:2]
     avg_colors = np.zeros((rows, cols, 3), dtype=np.float32)
     block = np.zeros_like(img)
     for r in range(rows):
@@ -53,54 +50,25 @@ def compute_cell_averages(img, cols, rows):
     return block, avg_colors
 
 def redness_score_from_bgr(avg_colors):
-    """Compute score in [0,1] where 0 ~ blue-dominant, 1 ~ red-dominant.
-       Score = R / (R + B + eps). Works reasonably well for your underwater red-vs-blue use-case.
-    """
     # avg_colors is rows x cols x 3 (B,G,R)
     B = avg_colors[..., 0].astype(np.float32)
     R = avg_colors[..., 2].astype(np.float32)
     eps = 1e-6
     score = R / (R + B + eps)
-    # clamp to [0,1]
     score = np.clip(score, 0.0, 1.0)
     return score
 
 def heatmap_from_scores(scores, target_shape):
-    """Return an RGB heatmap image (uint8) scaled to target_shape (H,W)."""
     # normalize to 0..255
     norm = (scores - scores.min()) / (scores.max() - scores.min() + 1e-9)
     small = (norm * 255).astype(np.uint8)
     # use OpenCV colormap on a small array then resize
-    cmap_small = cv2.applyColorMap(small, cv2.COLORMAP_JET)  # BGR
+    cmap_small = cv2.applyColorMap(small, cv2.COLORMAP_JET) # BGR
     # scale up to target_shape
     heatmap = cv2.resize(cmap_small, (target_shape[1], target_shape[0]), interpolation=cv2.INTER_NEAREST)
     return heatmap
 
-def make_colorbar_image(height_px=512, width_px=64, cmap='jet'):
-    """Make a vertical colorbar image as RGB uint8 using matplotlib colormap."""
-    import matplotlib
-    cm = matplotlib.cm.get_cmap(cmap)
-    vals = np.linspace(1, 0, height_px)[:, None]  # top=1 (red), bottom=0 (blue)
-    rgba = cm(vals)  # shape Hx1x4
-    rgb = (rgba[:, 0, :3] * 255).astype(np.uint8)
-    bar = np.repeat(rgb[:, None, :], width_px, axis=1)
-    # convert RGB to BGR for OpenCV
-    bar_bgr = cv2.cvtColor(bar, cv2.COLOR_RGB2BGR)
-    return bar_bgr
-
-def build_heatmap_and_colorbar_display(scores, target_shape, threshold):
-    heatmap = heatmap_from_scores(scores, target_shape)
-    colorbar = make_colorbar_image(height_px=heatmap.shape[0], width_px=60, cmap='jet')
-    # Draw black "cutoff marker" across the colorbar at the threshold location
-    # Map threshold (0..1) to colorbar vertical coordinate
-    tb = int(round((1.0 - threshold) * (colorbar.shape[0] - 1)))  # note invert so higher value shows near top
-    cv2.line(colorbar, (0,tb), (colorbar.shape[1]-1, tb), (0,0,0), thickness=3)
-    # Merge heatmap and colorbar side-by-side
-    combined = np.hstack([heatmap, colorbar])
-    return combined
-
 def fit_line_to_points(pts):
-    """pts: Nx2 array of (x, y) in image coordinates. Returns (vx, vy, x0, y0) from cv2.fitLine."""
     if len(pts) < 2:
         return None
     # Use numpy polyfit: fit y = m*x + b
@@ -109,8 +77,7 @@ def fit_line_to_points(pts):
     m, b = np.polyfit(xs, ys, 1)
     return (m, b)
 
-def draw_fitted_line(img, line_params, color=(0,0,255), thickness=2):
-    """line_params: (m,b) where y = m*x + b. Draws across image extents."""
+def draw_fitted_line(img, line_params, color=(0,0,0), thickness=4):
     h,w = img.shape[:2]
     m,b = line_params
     # compute two points at left and right edges
@@ -136,13 +103,12 @@ def centers_of_cells(avg_colors, img_shape):
             coords.append((r,c))
     return np.array(centers), coords  # centers shape (rows*cols, 2)
 
-# ----------------------- Main pipeline -----------------------
 def main():
     img = load_image(IMAGE_PATH)
     h, w = img.shape[:2]
     display_h, display_w = int(h * WINDOW_SCALE), int(w * WINDOW_SCALE)
 
-    orig_with_grid = overlay_grid(img, GRID_COLS, GRID_ROWS, color=(0,255,0), thickness=1)
+    orig_with_grid = overlay_grid(img, GRID_COLS, GRID_ROWS, thickness=1)
     cv2.imwrite(os.path.join(OUTPUT_DIR, "1_original_with_grid.jpg"), orig_with_grid)
     cv2.namedWindow("original_with_grid", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("original_with_grid", display_w, display_h)
@@ -153,14 +119,6 @@ def main():
     cv2.namedWindow("averaged_blocks", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("averaged_blocks", display_w, display_h)
     cv2.imshow("averaged_blocks", averaged_img)
-
-    # prepare scores and heatmap
-    scores = redness_score_from_bgr(avg_colors)  # shape rows x cols
-    heatmap_display = build_heatmap_and_colorbar_display(scores, (h, w//2), threshold=0.8)  # placeholder threshold for display
-    cv2.namedWindow("heatmap_and_colorbar", cv2.WINDOW_NORMAL)
-    cv2.resizeWindow("heatmap_and_colorbar", int(display_w*0.75), display_h)
-    cv2.imshow("heatmap_and_colorbar", heatmap_display)
-    cv2.imwrite(os.path.join(OUTPUT_DIR, "3_heatmap_initial.jpg"), heatmap_display)
 
     # compute centers for all cells
     centers, coords = centers_of_cells(avg_colors, img.shape)  # centers in image coordinates
