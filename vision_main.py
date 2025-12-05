@@ -7,7 +7,7 @@ from zed_wrapper import Zed              # or from Zed_Wrapper import Zed
 from YoloDetection import ObjDetModel    # or from Yolov5Detection import ObjDetModel
 
 
-# Which YOLO class id is your target? (e.g., 0 if you trained a single class)
+# based of YAML file descide, which is object 1 
 TARGET_CLASS_ID = 1
 
 
@@ -25,14 +25,17 @@ def get_nearest_target_box(zed: Zed, results, min_conf: float = 0.3):
     nearest_distance = math.inf
     nearest_box = None
 
+    #To protect us from weird states, like no detection or image
     if results is None or not hasattr(results, "xyxy") or len(results.xyxy) == 0:
         return nearest_distance, nearest_box
 
     boxes = results.xyxy[0]  # tensor of shape (N, 6): [x1, y1, x2, y2, conf, cls]
-
+    
+    #Check if tensor is empty or has 0 elements
     if boxes is None or boxes.numel() == 0:
         return nearest_distance, nearest_box
-
+    
+    #We loop through each detection
     for box in boxes:
         x1, y1, x2, y2, conf, cls = box.tolist()
         conf = float(conf)
@@ -50,10 +53,11 @@ def get_nearest_target_box(zed: Zed, results, min_conf: float = 0.3):
         # Use your Euclidean-distance median method
         distance = zed.get_median_distance(x1_i, y1_i, x2_i, y2_i)
 
-        # Ignore invalid distances
+        # Ignore garabge ah distance values if they pop distances
         if distance <= 0 or math.isinf(distance) or math.isnan(distance):
             continue
 
+        #Keep the nearest detection
         if distance < nearest_distance:
             nearest_distance = distance
             nearest_box = (x1_i, y1_i, x2_i, y2_i)

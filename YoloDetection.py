@@ -2,9 +2,11 @@ import cv2
 import torch
 from ultralytics import YOLO
 
-"""
-    discord: @kialli
-    github: @kchan5071
+class ObjDetModel:
+
+    """
+    discord: @kialli,@Seaniiii
+    github: @kchan5071,@Gabriel-Sean13
 
     YOLOv11 object detection wrapper.
 
@@ -22,16 +24,14 @@ from ultralytics import YOLO
                   continue
               ...
 
-      still works.
+      still works.WIll update.
 """
 
-
-class ObjDetModel:
-
     def __init__(self, model_path: str = None, device: str = None):
-        print("initializing YOLOv11 object")
 
-        # ------------------ device selection ------------------
+        print('Initializing YOLOv11 object')
+     
+        #Check for Available GPU
         if device is None:
             if torch.cuda.is_available():
                 device = "cuda:0"
@@ -39,86 +39,65 @@ class ObjDetModel:
                 device = "cpu"
         self.device = device
 
-        # ------------------ model path ------------------
-        # Default to your trained model
+        #Model Path selection
         if model_path is None:
-            model_path = "/mnt/c/Users/whift/Mechatronics_Vision/models/v1 (1).pt"
-
-        # ------------------ load YOLOv11 model ------------------
+            # NOTE: replace this with your real model path
+            model_path = "Orn path"
+        
+        #Load Yolo Model
         self.model = YOLO(model_path)
-        # Move underlying model to device (YOLO returns a wrapper object)
+        #Move model to device, moves parameter to chosen device either cuda:0 or cpu
         self.model.to(self.device)
-
-        # Keep this for consistency with old code; YOLO will internally handle resizing,
-        # but we can leave this here in case you want to reintroduce manual resizing later.
+        
+        #Consistency from old code from kai, This isn't used anywhere in the code base
+        #Ultralytics does all the resizing work now
         self.model_resolution = 640
 
         print(f"YOLOv11 init success on device: {self.device}")
         print(f"model path: {model_path}")
 
-    def load_new_model(self, model_path: str):
-        """
-            Load a new YOLOv11 model from a given path.
-        """
-        self.model = YOLO(model_path)
-        self.model.to(self.device)
-        print(f"loaded new YOLOv11 model: {model_path}")
-
-    #This function is only for inference; optimize it, no gradients.
+    #This function is only for inference, no gradients.
+    #This for detect_in_image()
     @torch.inference_mode()
-    ################################################################
-    
-    def detect_in_image(self, image):
-        """
-            Run YOLOv11 detection on a BGR image (OpenCV format).
+    def detect_in_image(self,image):
 
-            input:
-                image: np_array (H, W, 3) in BGR
-
-            return:
-                results: a YOLO Results object (for this single image)
-                         with an added attribute .xyxy such that:
-                             results.xyxy[0] -> (N, 6) tensor:
-                                 [x1, y1, x2, y2, conf, cls]
-                         in ORIGINAL image coordinates.
-        """
         if image is None:
             return None
-
-        # Convert BGR -> RGB for YOLO
+        
+        #OpenCV images are BGR YOLO expects RGB images
         frame_cc = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-        # Run YOLOv11; returns a list of Results (one per image)
-        yolo_results = self.model(frame_cc, verbose=False)
+        #Runs YOLO and returns a list of results per image
+        yolo_results = self.model(frame_cc, verbose = False)
 
+        #Ultralytics will return an empty list this avoids that 
         if len(yolo_results) == 0:
-            # No results at all: create an empty .xyxy[0] to avoid crashes
+            #If no results it create an empty .xyxy[0] to avoid crashes
             res = type("EmptyResults", (), {})()
-            res.xyxy = [torch.empty((0, 6), dtype=torch.float32)]
+            res.xyxy = [torch.empty((0,6), dtype=torch.float32)]
             return res
-
-        # First (and only) image
+        
+        #Takes the first and only image
         res = yolo_results[0]
-        boxes = res.boxes  # Boxes object
+        #Boxes Object
+        boxes = res.boxes
 
-        # If no detections, create empty tensor with same structure
+        #To handle no detection
         if boxes is None or boxes.xyxy is None or boxes.xyxy.numel() == 0:
-            res.xyxy = [torch.empty((0, 6), dtype=torch.float32)]
+            res.xyxy = [torch.empty((0,6), dtype=torch.float32)]
             return res
+        
+        #(M,4)
+        xyxy = boxes.xyxy
+        #(M,1)
+        conf = boxes.conf.view(-1,1)
+        #(M,1)
+        cls = boxes.cls.view(-1,1)
 
-        # YOLOv11 gives:
-        #   boxes.xyxy : (N, 4) -> [x1, y1, x2, y2]
-        #   boxes.conf : (N,)    confidences
-        #   boxes.cls  : (N,)    class indices
-        xyxy = boxes.xyxy              # (N, 4)
-        conf = boxes.conf.view(-1, 1)  # (N, 1)
-        cls  = boxes.cls.view(-1, 1)   # (N, 1)
+        #Combine into a (M,6) tensor
+        combined = torch.cat([xyxy,conf,cls],dim = 1)
 
-        # Combine into (N, 6): [x1, y1, x2, y2, conf, cls]
-        combined = torch.cat([xyxy, conf, cls], dim=1)
-
-        # Attach an .xyxy attribute matching the old YOLOv5-hub structure
-        # so existing code can still do results.xyxy[0]
+        #Attach an .xyxy to match the old YOLOv5 structure kai made
         res.xyxy = [combined]
 
         return res
