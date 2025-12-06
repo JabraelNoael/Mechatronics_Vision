@@ -3,11 +3,11 @@ import math
 import torch
 
 # Adjust these imports to match your actual filenames / paths
-from zed_wrapper import Zed              # or from Zed_Wrapper import Zed
-from YoloDetection import ObjDetModel    # or from Yolov5Detection import ObjDetModel
+from zed_wrapper import Zed              
+from YoloDetection import ObjDetModel    
 
 
-# based of YAML file descide, which is object 1 
+# based off YAML file decide, which is object 1 
 TARGET_CLASS_ID = 1
 
 
@@ -25,17 +25,18 @@ def get_nearest_target_box(zed: Zed, results, min_conf: float = 0.3):
     nearest_distance = math.inf
     nearest_box = None
 
-    #To protect us from weird states, like no detection or image
+    # To protect us from weird states, like no detection or image
     if results is None or not hasattr(results, "xyxy") or len(results.xyxy) == 0:
         return nearest_distance, nearest_box
 
-    boxes = results.xyxy[0]  # tensor of shape (N, 6): [x1, y1, x2, y2, conf, cls]
-    
-    #Check if tensor is empty or has 0 elements
+    # tensor of shape (N, 6): [x1, y1, x2, y2, conf, cls]
+    boxes = results.xyxy[0]
+
+    # Check if tensor is empty or has 0 elements
     if boxes is None or boxes.numel() == 0:
         return nearest_distance, nearest_box
-    
-    #We loop through each detection
+
+    # We loop through each detection
     for box in boxes:
         x1, y1, x2, y2, conf, cls = box.tolist()
         conf = float(conf)
@@ -53,11 +54,11 @@ def get_nearest_target_box(zed: Zed, results, min_conf: float = 0.3):
         # Use your Euclidean-distance median method
         distance = zed.get_median_distance(x1_i, y1_i, x2_i, y2_i)
 
-        # Ignore garabge ah distance values if they pop distances
+        # Ignore garbage distance values if they pop
         if distance <= 0 or math.isinf(distance) or math.isnan(distance):
             continue
 
-        #Keep the nearest detection
+        # Keep the nearest detection
         if distance < nearest_distance:
             nearest_distance = distance
             nearest_box = (x1_i, y1_i, x2_i, y2_i)
@@ -102,7 +103,7 @@ def main():
         return
 
     # ----------------- Initialize YOLO model -----------------
-    # This uses your default path inside ObjDetModel; override if needed:
+    # Uses default path inside ObjDetModel; override if needed:
     # detection = ObjDetModel(model_path="/mnt/c/Users/whift/Mechatronics_Vision/models/v1 (1).pt")
     detection = ObjDetModel()
 
@@ -118,18 +119,20 @@ def main():
         # Run YOLO detection
         results = detection.detect_in_image(image)
 
-        # Find nearest target using Euclidean distance from ZED
-        nearest_distance, nearest_box = get_nearest_target_box(zed, results)
+        # New: handle None safely (e.g., bad frame / conversion failure)
+        if results is not None:
+            # Find nearest target using Euclidean distance from ZED
+            nearest_distance, nearest_box = get_nearest_target_box(zed, results)
 
-        if nearest_box is not None and nearest_distance < math.inf:
-            print(f"Nearest target distance: {nearest_distance:.2f} m")
-            image = draw_box_and_distance(image, nearest_box, nearest_distance)
-        else:
-            # Optional: print if nothing detected
-            # print("No valid target detected.")
-            pass
+            if nearest_box is not None and nearest_distance < math.inf:
+                print(f"Nearest target distance: {nearest_distance:.2f} m")
+                image = draw_box_and_distance(image, nearest_box, nearest_distance)
+            else:
+                # Optional: print if nothing detected
+                # print("No valid target detected.")
+                pass
 
-        # Show image
+        # Show image (either with box or just raw frame)
         cv2.imshow("YOLO + ZED (distance)", image)
         key = cv2.waitKey(1) & 0xFF
         if key == ord("q"):
