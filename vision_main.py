@@ -1,6 +1,7 @@
 import cv2
 import math
 import torch
+import pyzed.sl as sl
 
 # Adjust these imports to match your actual filenames / paths
 from zed_wrapper import Zed              
