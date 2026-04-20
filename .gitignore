@@ -5,7 +5,12 @@ data/labels/train/*
 data/images/ignore/*
 data/labels/ignore/*
 #all pre-trained models (with the exception of my own once I finish training it)
-*.pt
+yolov8n.pt
+best.pt
 train.cache
+ladle/
 #Add venv file to git ignore(To avoid having git coomit 10k+ files lmao)
 mecha_yolo/
+# allow trained YOLO artifacts
+!runs_cnn_transfer/**/best.pt
+!runs_cnn_transfer/**/last.pt
