@@ -6,8 +6,8 @@ import statistics
 class Zed:
 
     """
-        discord: @kialli
-        github: @kchan5071
+        discord: @kialli, @seaniiiiii 
+        github: @kchan5071, @Gabriel-Sean13
 
         Wrapper class for ZED camera.
 
@@ -171,7 +171,7 @@ class Zed:
          
         return float(distance)
     
-    #Get the mdeian distance spample points
+    #Get the mdeian distance sample points
     def get_median_distance(self, x1, y1, x2, y2):
         """
             Gets 5 Euclidean distance sample points in the rectangle and returns the median.
